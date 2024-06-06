@@ -1,0 +1,33 @@
+const AWS = require('aws-sdk');
+const crypto = require('crypto');
+const dynamo = new AWS.DynamoDB.DocumentClient();
+
+const { publicKey, privateKey } = crypto.generateKeyPairSync('rsa', {
+    modulusLength: 2048,
+});
+
+exports.handler = async (event) => {
+    const { text } = JSON.parse(event.body);
+    const encryptedText = crypto.publicEncrypt(publicKey, Buffer.from(text)).toString('base64');
+
+    await logToDynamoDB('EncryptRSA', text, encryptedText);
+
+    return {
+        statusCode: 200,
+        body: JSON.stringify({ encryptedText })
+    };
+};
+
+async function logToDynamoDB(operation, originalText, resultText) {
+    const params = {
+        TableName: 'EncryptionLogs',
+        Item: {
+            id: crypto.randomBytes(16).toString('hex'),
+            operation,
+            originalText,
+            resultText,
+            timestamp: new Date().toISOString()
+        }
+    };
+    await dynamo.put(params).promise();
+}

@@ -1,0 +1,37 @@
+const AWS = require("aws-sdk");
+const crypto = require("crypto");
+const dynamo = new AWS.DynamoDB.DocumentClient();
+const s3 = new AWS.S3();
+
+const algorithm = "aes-256-cbc";
+const key = crypto.randomBytes(32);
+const iv = crypto.randomBytes(16);
+
+exports.handler = async (event) => {
+  const { text } = JSON.parse(event.body);
+  const cipher = crypto.createCipheriv(algorithm, Buffer.from(key), iv);
+  let encrypted = cipher.update(text);
+  encrypted = Buffer.concat([encrypted, cipher.final()]);
+  const encryptedText = iv.toString("hex") + ":" + encrypted.toString("hex");
+
+  await logToDynamoDB("EncryptAES", text, encryptedText);
+
+  return {
+    statusCode: 200,
+    body: JSON.stringify({ encryptedText }),
+  };
+};
+
+async function logToDynamoDB(operation, originalText, resultText) {
+  const params = {
+    TableName: "EncryptionLogs",
+    Item: {
+      id: crypto.randomBytes(16).toString("hex"),
+      operation,
+      originalText,
+      resultText,
+      timestamp: new Date().toISOString(),
+    },
+  };
+  await dynamo.put(params).promise();
+}
