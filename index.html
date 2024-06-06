@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Encryption App</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <h1>EasyEncrypt</h1>
+        <textarea id="inputText" placeholder="Enter text to encrypt/decrypt"></textarea>
+        <div class="controls">
+            <select id="algorithm">
+                <option value="aes">AES</option>
+                <option value="rsa">RSA</option>
+                <option value="blowfish">Blowfish</option>
+                <option value="des">DES</option>
+            </select>
+            <button onclick="encrypt()">Encrypt</button>
+            <button onclick="decrypt()">Decrypt</button>
+        </div>
+        <pre id="output"></pre>
+    </div>
+    <script src="app.js"></script>
+</body>
+</html>
